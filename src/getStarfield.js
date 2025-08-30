@@ -28,7 +28,7 @@ export default function getStarfield({ numStars = 500 } = {}) {
 
   const mat = new THREE.PointsMaterial({
     size: 10,
-    vertexColors: true,
+    color: 0xf6ff14,
     fog: false,
   });
 

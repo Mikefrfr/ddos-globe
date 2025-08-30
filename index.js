@@ -22,9 +22,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 // --- Lights ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+const ambientLight = new THREE.AmbientLight(0xf6ff14, 0.9);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+const directionalLight = new THREE.DirectionalLight(0xf6ff14, 0.8);
 directionalLight.position.set(200, 200, 200);
 scene.add(directionalLight);
 
@@ -33,12 +33,15 @@ scene.add(stars);
 
 // --- Globe ---
 const globe = new Globe()
-  .globeImageUrl("//unpkg.com/three-globe/example/img/earth-night.jpg")
-  .bumpImageUrl("//unpkg.com/three-globe/example/img/earth-topology.png")
+  // .globeImageUrl("//unpkg.com/three-globe/example/img/earth-night.jpg")
+  // .bumpImageUrl("//unpkg.com/three-globe/example/img/earth-topology.png")
   .hexPolygonResolution(3)
-  .hexPolygonMargin(0.3)
-  .hexPolygonColor(() => "rgba(0,255,0,0.6)")
-  .hexPolygonAltitude(0.01);
+  .hexPolygonMargin(0.6)
+  .hexPolygonColor(() => "#f6ff14")
+  .showAtmosphere(true)
+  .atmosphereColor("#f6ff14")
+  .atmosphereAltitude(0.1)
+  // .hexPolygonAltitude(0.01);
 
 scene.add(globe);
 
