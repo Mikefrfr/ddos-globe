@@ -1,16 +1,26 @@
 {
-  "name": "ddos",
+  "name": "ddos-globe",
   "version": "1.0.0",
-  "description": "",
+  "description": "This repository contains a simple Three.js application that renders a 3D globe. It displays feature outlines on a sphere, surrounded by a starfield, and offers simple user interaction (orbit controls).",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mikefrfr/ddos-globe.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Mikefrfr/ddos-globe/issues"
+  },
+  "homepage": "https://github.com/Mikefrfr/ddos-globe#readme",
   "dependencies": {
+    "kapsule": "^1.16.3",
+    "three": "^0.179.1",
     "three-globe": "^2.44.0"
   }
 }
