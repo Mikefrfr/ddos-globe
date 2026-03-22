@@ -1,25 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Three.js + GeoJSON</title>
+    <title>Threat Intelligence Globe</title>
     <style>
       body {
         margin: 0;
+        overflow: hidden;
+        background: radial-gradient(#050526 0%, black 90%) no-repeat;
       }
-    </style>
-     <script type="importmap">
-      {
-				"imports": {
-					"three": "https://cdn.jsdelivr.net/npm/three@0.170/build/three.module.js",
-          "jsm/": "https://cdn.jsdelivr.net/npm/three@0.170/examples/jsm/",
-          "three-globe": "https://esm.sh/three-globe"
+      
+      /* Stars Animation */
+      .stars {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 2px;
+        height: 2px;
+        z-index: 1;
+        pointer-events: none;
+      }
+      
+      .stars:before, .stars:after {
+        content: "";
+        position: absolute;
+        width: inherit;
+        height: inherit;
+        box-shadow: inherit;
+      }
+      
+      /* Cyberpunk Title Container */
+      .title-container {
+        position: absolute;
+        top: 30px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 1000;
+        pointer-events: none;
+      }
+      
+      .cyberspace {
+        font-family: 'Orbitron', monospace;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: black;
+        -webkit-text-stroke-width: 2px;
+        -webkit-text-stroke-color: #f6ff14;
+        text-shadow: 
+          0 0 10px rgba(246, 255, 20, 0.8),
+          0 0 20px rgba(246, 255, 20, 0.5);
+        letter-spacing: 6px;
+        display: inline-block;
+        margin: 0 10px;
         }
+
+      /* Status Bar */
+      .status-bar {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1000;
+        pointer-events: none;
       }
-    </script>
+      
+      .status-card {
+        background: rgba(0, 0, 0, 0.7);
+        color: #f6ff14;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: 'Orbitron', monospace;
+        font-size: 12px;
+        border-left: 3px solid #f6ff14;
+        backdrop-filter: blur(5px);
+      }
+      
+      /* Attack Counter */
+      .attack-counter {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        pointer-events: none;
+      }
+      
+      .counter-card {
+        background: rgba(0, 0, 0, 0.7);
+        color: #ff4444;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: 'Orbitron', monospace;
+        font-size: 14px;
+        font-weight: bold;
+        border-right: 3px solid #ff4444;
+        backdrop-filter: blur(5px);
+      }
+      
+      /* Legend */
+      .legend {
+        position: absolute;
+        bottom: 22px;
+        left: 40%;
+        transform: translateX(-50%);
+        color: yellow;
+        z-index: 1000;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 8px 16px;
+        border-radius: 4px;
+        display: flex;
+        gap: 10px;
+        font-family: 'Orbitron', monospace;
+        font-size: 10px;
+        backdrop-filter: blur(5px);
+      }
+      
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+      }
+      
+      .legend-color.red { background: #ff4444; }
+      .legend-color.orange { background: #ff6600; }
+      .legend-color.yellow { background: #ffaa00; }
+      .legend-color.gray { background: yellow; }
+    </style>
   </head>
   <body>
+    <!-- Cyberpunk Title -->
+    <div class="title-container">
+      <div>
+        <span class="cyberspace" data-text="THREAT">THREAT</span>
+        <span class="cyberspace" data-text="INTELLIGENCE">INTELLIGENCE</span>
+        <span class="cyberspace" data-text="GLOBE">GLOBE</span>
+      </div>
+    </div>
+    
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-card">
+         MONITORING NETWORK TRAFFIC
+      </div>
+    </div>
+    
+<!-- IP Search Bar -->
+<div class="ip-search-container" style="
+  position: absolute;
+  bottom: 10px;
+  background: transparent;
+  right: 20px;
+  z-index: 1000;
+  pointer-events: auto;
+  font-family:'Orbitron', monospace;
+">
+  <div style="
+    background: rgba(0, 0, 0, 0);
+    border-radius: 8px;
+    padding: 12px;
+  ">
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <input 
+        type="text" 
+        id="ip-search-input" 
+        placeholder="Enter IP address (e.g., 8.8.8.8)" 
+        style="
+          background: rgba(0, 0, 0, 0.6);
+          border: 1px solid #f6ff14;
+          color: #f6ff14;
+          padding: 8px 12px;
+          border-radius: 4px;
+          font-family: 'Orbitron', monospace;
+          font-size: 12px;
+          width: 250px;
+          outline: none;
+        "
+      >
+      <button 
+        id="ip-search-btn" 
+        style="
+          background: #f6ff14;
+          color: black;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          font-family: 'Orbitron', monospace;
+          font-size: 12px;
+          transition: all 0.2s;
+        "
+        onmouseover="this.style.background='#ffff88'"
+        onmouseout="this.style.background='#f6ff14'"
+      >
+        Search
+      </button>
+      <button 
+        id="ip-clear-btn" 
+        style="
+          background: #ff4444;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          font-family: 'Orbitron', monospace;
+          font-size: 12px;
+          transition: all 0.2s;
+        "
+        onmouseover="this.style.background='#ff6666'"
+        onmouseout="this.style.background='#ff4444'"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+  
+  <!-- Result Panel -->
+  <div id="ip-search-result" style="
+    margin-top: 10px;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 12px;
+    padding-left: 12px;
+    border: 1px solid #f6ff14;
+    font-family:'Orbitron', monospace;
+    font-size: 12px;
+    display: none;
+    width: 440px;
+    word-wrap: break-word;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  "></div>
+</div>
+    
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color red"></div>
+        <span>HIGH THREAT (90%+)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color orange"></div>
+        <span>MEDIUM THREAT (70-89%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color yellow"></div>
+        <span>LOW THREAT (<70%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color gray"></div>
+        <span>NO DATA</span>
+      </div>
+    </div>
+    
+    <!-- Tooltip -->
+    <div id="globe-tooltip" style="
+      position: absolute; 
+      display: none; 
+      background: rgba(0, 0, 0, 0.9); 
+      color: #f6ff14; 
+      padding: 10px 15px; 
+      border-radius: 4px; 
+      font-family:'Orbitron', monospace; 
+      font-size: 12px;
+      pointer-events: none; 
+      z-index: 1000;
+      border: 1px solid #f6ff14;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 0 20px rgba(246, 255, 20, 0.2);
+    "></div>
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js",
+        "jsm/": "https://cdn.jsdelivr.net/npm/three@0.174.0/examples/jsm/",
+        "three-globe": "https://esm.sh/three-globe@2.30.0",
+        "@turf/turf": "https://esm.sh/@turf/turf@6.5.0"
+      }
+    }
+    </script>
     <script type="module" src="index.js"></script>
   </body>
 </html>
