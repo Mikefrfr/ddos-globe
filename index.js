@@ -3,16 +3,13 @@ import Globe from "three-globe";
 import { OrbitControls } from "jsm/controls/OrbitControls.js";
 import getStarfield from "./src/getStarfield.js";
 
-// --- Setup Tooltip Reference ---
 const tooltip = document.getElementById('globe-tooltip');
 
-// --- Renderer ---
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-// --- Scene & Camera ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
 camera.position.set(0, 0, 400);
@@ -20,7 +17,6 @@ camera.position.set(0, 0, 400);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// --- Lights ---
 scene.add(new THREE.AmbientLight(0xf6ff14, 0.9));
 const directionalLight = new THREE.DirectionalLight(0xf6ff14, 0.8);
 directionalLight.position.set(200, 200, 200);
@@ -40,7 +36,7 @@ titleSprite.scale.set(12, 3, 1);
 titleSprite.position.set(0, 280, 0);
 scene.add(titleSprite);
 
-// --- Mock traffic data for countries ---
+//Mock traffic data 
 const mockTrafficData = {
   'USA': { traffic: 850, name: 'United States' },
   'CHN': { traffic: 920, name: 'China' },
@@ -64,27 +60,44 @@ const mockTrafficData = {
   'NGA': { traffic: 170, name: 'Nigeria' }
 };
 
-// Function to get color based on traffic value (red for high traffic, yellow for low traffic)
+// Function to get color based on traffic value
 function getTrafficColor(traffic) {
-  if (!traffic) return '#dddddd'; // Default gray for no data
-  
-  // Red (high traffic) to Yellow (low traffic)
-  // Normalize traffic between 0-1000 for color calculation
+  if (!traffic) return '#dddddd';
+
   const normalizedTraffic = Math.min(traffic / 1000, 1);
-  
-  // For high traffic: greenValue low (more red)
-  // For low traffic: greenValue high (more yellow)
-  // So we invert: greenValue = 255 * (1 - normalizedTraffic)
+
   const greenValue = Math.floor(255 * (1 - normalizedTraffic));
   
   return `rgb(255, ${greenValue}, 0)`;
 }
 
-// --- Pulsing Attack Markers Data ---
+// Globe with traffic-based colors
+const globe = new Globe()
+  .hexPolygonResolution(3)
+  .hexPolygonMargin(0.2)
+  .hexPolygonColor(({ properties }) => {
+    const countryCode = properties.ISO_A3 || properties.iso_a3 || properties.adm0_a3;
+    const trafficData = mockTrafficData[countryCode];
+    return getTrafficColor(trafficData?.traffic);
+  })
+  .showAtmosphere(true)
+  .atmosphereColor("#f6ff14")
+  .atmosphereAltitude(0.1);
+
+scene.add(globe);
+
+// Load GeoJSON
+fetch("./geojson/custom.geo.json")
+  .then((res) => res.json())
+  .then((data) => {
+    globe.hexPolygonsData(data.features);
+  });
+
+//Pulsing Markers
 let attackMarkers = [];
 let pulseTime = 0;
 
-// Mock attack locations (lat, lon, confidence, ip, attack type)
+// Mock attack locations
 const mockAttacks = [
   { lat: 40.7128, lon: -74.0060, confidence: 95, ip: "185.130.5.253", type: "DDoS", country: "USA" },
   { lat: 39.9042, lon: 116.4074, confidence: 92, ip: "103.45.67.89", type: "Port Scan", country: "CHN" },
@@ -98,37 +111,34 @@ const mockAttacks = [
   { lat: 43.6532, lon: -79.3832, confidence: 81, ip: "99.88.77.66", type: "Web Attack", country: "CAN" }
 ];
 
-// Try this conversion - swap X and Z
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * Math.PI / 180;
   const theta = lon * Math.PI / 180;
-  const x = radius * Math.sin(phi) * Math.sin(theta);  // Swapped: sin(theta) instead of cos
+  const x = radius * Math.sin(phi) * Math.sin(theta);
   const y = radius * Math.cos(phi);
-  const z = radius * Math.sin(phi) * Math.cos(theta);  // Swapped: cos(theta) instead of sin
+  const z = radius * Math.sin(phi) * Math.cos(theta);
   return new THREE.Vector3(x, y, z);
 }
 
 // Function to create a pulsing marker
-// Function to create a pulsing marker with pin (more visible)
 function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
-  const radius = 101.5; // Match the globe's actual surface
+  const radius = 101.5;
   const position = latLonToVector3(lat, lon, radius);
   
-  // Determine color based on confidence
   let color;
   if (confidence >= 90) {
-    color = 0xff0000; // Red - High threat
+    color = 0xff0000;
   } else if (confidence >= 70) {
-    color = 0xff6600; // Orange - Medium threat
+    color = 0xff6600;
   } else {
-    color = 0xffaa00; // Yellow - Low threat
+    color = 0xffaa00;
   }
   
-  // Create a group to hold all marker elements
+  //group to hold all marker elements
   const group = new THREE.Group();
   group.position.copy(position);
   
-  // Add cone/pin (stalk)
+  //cone
   const coneGeometry = new THREE.ConeGeometry(0.4, 1.2, 8);
   const coneMaterial = new THREE.MeshStandardMaterial({
     color: color,
@@ -139,7 +149,7 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
   cone.position.y = -0.8;
   group.add(cone);
   
-  // Add a small sphere (pin head)
+  //sphere
   const sphereGeometry = new THREE.SphereGeometry(0.6, 16, 16);
   const sphereMaterial = new THREE.MeshStandardMaterial({
     color: color,
@@ -150,7 +160,7 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
   sphere.position.y = -0.2;
   group.add(sphere);
   
-  // Add pulsing ring (outer - floats above the pin)
+  //pulsing ring
   const ringGeometry = new THREE.RingGeometry(0.8, 1.6, 32);
   const ringMaterial = new THREE.MeshBasicMaterial({
     color: color,
@@ -163,12 +173,11 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
   ring.lookAt(0, 0, 0);
   group.add(ring);
   
-  // Add a point light for glow effect
   const light = new THREE.PointLight(color, 0.5, 30);
   light.position.y = 0.2;
   group.add(light);
   
-  // Store attack data for tooltip
+  //data tooltip
   group.userData = {
     type: "attack",
     ip: ip,
@@ -179,7 +188,7 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
     ring: ring
   };
 
-    // Make the marker point outward from the globe's center
+    //marker point outward from the globe's center
   group.quaternion.copy(new THREE.Quaternion().setFromUnitVectors(
     new THREE.Vector3(0, 1, 0),
     position.clone().normalize()
@@ -188,9 +197,7 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
   return group;
   
 }
-// Remove the mockAttacks array and replace loadAttackMarkers with:
 
-// Fetch real attack data from your backend
 async function loadAttackMarkers() {
   try {
     const response = await fetch('http://localhost:8000/api/live-attacks?limit=20');
@@ -201,9 +208,9 @@ async function loadAttackMarkers() {
       attackMarkers.forEach(marker => scene.remove(marker));
       attackMarkers = [];
       
-      // Add new markers from real data
+      // Add new markers
       data.attacks.forEach(attack => {
-        // Only add if we have valid coordinates
+        // Only add if valid coordinates
         if (attack.lat && attack.lon) {
           const marker = createPulsingMarker(
             attack.lat,
@@ -218,27 +225,23 @@ async function loadAttackMarkers() {
         }
       });
       
-      console.log(`✅ Added ${attackMarkers.length} real attack markers from AbuseIPDB`);
-      console.log(`📍 Locations: ${attackMarkers.length} cities with active threats`);
+      console.log(`Added ${attackMarkers.length} real attack markers from AbuseIPDB`);
+      console.log(`Locations: ${attackMarkers.length} cities with active threats`);
     } else {
-      console.log('⚠️ No real attack data available, using mock data');
-      // Fallback to mock data if API fails
+      console.log('No real attack data available, using mock data');
       loadMockAttackMarkers();
     }
   } catch (error) {
-    console.error('❌ Error fetching attack data:', error);
-    // Fallback to mock data
+    console.error('Error fetching attack data:', error);
     loadMockAttackMarkers();
   }
 }
 
-// Keep mock data as fallback
 function loadMockAttackMarkers() {
   // Remove old markers
   attackMarkers.forEach(marker => scene.remove(marker));
   attackMarkers = [];
   
-  // Use your existing mockAttacks array
   mockAttacks.forEach(attack => {
     const marker = createPulsingMarker(
       attack.lat, 
@@ -252,39 +255,14 @@ function loadMockAttackMarkers() {
     attackMarkers.push(marker);
   });
   
-  console.log(`⚠️ Using ${attackMarkers.length} mock attack markers (fallback mode)`);
+  console.log(`Using ${attackMarkers.length} mock attack markers (fallback mode)`);
 }
 
-// Load every 30 seconds
 loadAttackMarkers();
 
-// --- Globe with traffic-based colors ---
-const globe = new Globe()
-  .hexPolygonResolution(3)
-  .hexPolygonMargin(0.2)
-  .hexPolygonColor(({ properties }) => {
-    // Try different possible country code fields
-    const countryCode = properties.ISO_A3 || properties.iso_a3 || properties.adm0_a3;
-    const trafficData = mockTrafficData[countryCode];
-    return getTrafficColor(trafficData?.traffic);
-  })
-  .showAtmosphere(true)
-  .atmosphereColor("#f6ff14")
-  .atmosphereAltitude(0.1);
+let tempMarker = null;
 
-scene.add(globe);
-
-// --- Load GeoJSON ---
-fetch("./geojson/custom.geo.json")
-  .then((res) => res.json())
-  .then((data) => {
-    globe.hexPolygonsData(data.features);
-  });
-
-// --- IP Search Functionality ---
-let tempMarker = null; // Store temporary marker
-
-// Function to validate IP address format
+// Function to validate IP address
 function isValidIP(ip) {
   const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
   if (!ipPattern.test(ip)) return false;
@@ -296,24 +274,24 @@ function isValidIP(ip) {
   });
 }
 
-// Function to add temporary marker on globe (identical to attack markers)
+
+
+// Function to add temporary marker
 function addTemporaryMarker(lat, lon, ip, city, country) {
-  // Remove existing temp marker if any
   if (tempMarker) {
     scene.remove(tempMarker);
   }
   
-  const radius = 101.5; // MUST match your attack markers radius
-  const position = latLonToVector3(lat, lon, radius); // Use the SAME function
+  const radius = 101.5;
+  const position = latLonToVector3(lat, lon, radius);
   
-  // Cyan color for temporary marker
   const color = 0x00ffff;
   
-  // Create a group to hold all marker elements
+  // Create a group
   const group = new THREE.Group();
   group.position.copy(position);
   
-  // Add cone/pin (stalk)
+  //cone
   const coneGeometry = new THREE.ConeGeometry(0.4, 1.2, 8);
   const coneMaterial = new THREE.MeshStandardMaterial({
     color: color,
@@ -324,7 +302,7 @@ function addTemporaryMarker(lat, lon, ip, city, country) {
   cone.position.y = -0.8;
   group.add(cone);
   
-  // Add a small sphere (pin head)
+  //sphere
   const sphereGeometry = new THREE.SphereGeometry(0.6, 16, 16);
   const sphereMaterial = new THREE.MeshStandardMaterial({
     color: color,
@@ -335,7 +313,7 @@ function addTemporaryMarker(lat, lon, ip, city, country) {
   sphere.position.y = -0.2;
   group.add(sphere);
   
-  // Add pulsing ring (outer - floats above the pin)
+  //pulsing ring
   const ringGeometry = new THREE.RingGeometry(0.8, 1.6, 32);
   const ringMaterial = new THREE.MeshBasicMaterial({
     color: color,
@@ -348,12 +326,11 @@ function addTemporaryMarker(lat, lon, ip, city, country) {
   ring.lookAt(0, 0, 0);
   group.add(ring);
   
-  // Add a point light for glow effect
   const light = new THREE.PointLight(color, 0.5, 30);
   light.position.y = 0.2;
   group.add(light);
   
-  // Store data for tooltip
+  //data tooltip
   group.userData = {
     type: "temp",
     ip: ip,
@@ -365,7 +342,7 @@ function addTemporaryMarker(lat, lon, ip, city, country) {
     ring: ring
   };
   
-  // Make the marker point outward from the globe's center (SAME as attack markers)
+  // Make the marker point outward from the globe's center
   group.quaternion.copy(new THREE.Quaternion().setFromUnitVectors(
     new THREE.Vector3(0, 1, 0),
     position.clone().normalize()
@@ -374,7 +351,7 @@ function addTemporaryMarker(lat, lon, ip, city, country) {
   scene.add(group);
   tempMarker = group;
   
-  // Add pulse animation for the temporary marker (SAME as attack markers)
+  // Add pulse animation
   let pulseTime = 0;
   function animateTempMarker() {
     if (!tempMarker || tempMarker !== group) return;
@@ -396,10 +373,7 @@ function addTemporaryMarker(lat, lon, ip, city, country) {
     requestAnimationFrame(animateTempMarker);
   }
   animateTempMarker();
-  
-  console.log(`✅ Temporary marker added at: ${city} (${lat}, ${lon})`);
-  console.log(`📍 3D Position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`);
-  
+
   return group;
 }
 
@@ -412,7 +386,6 @@ function removeTemporaryMarker() {
 }
 
 // Function to fly to location
-// Function to rotate camera to location (globe stays fixed)
 function flyToLocation(lat, lon, name) {
   // Convert lat/lon to a position in 3D space at camera distance
   const distance = camera.position.length();
@@ -453,6 +426,22 @@ function flyToLocation(lat, lon, name) {
   }, 2000);
 }
 
+// Function to check if IP is private
+function isPrivateIP(ip) {
+  const parts = ip.split('.');
+  const first = parseInt(parts[0]);
+  const second = parseInt(parts[1]);
+  
+  // Private IP ranges
+  if (first === 10) return true;                    // 10.0.0.0 - 10.255.255.255
+  if (first === 127) return true;                  // 127.0.0.0 - 127.255.255.255 (loopback)
+  if (first === 169 && second === 254) return true; // 169.254.0.0 - 169.254.255.255 (APIPA)
+  if (first === 172 && second >= 16 && second <= 31) return true; // 172.16.0.0 - 172.31.255.255
+  if (first === 192 && second === 168) return true; // 192.168.0.0 - 192.168.255.255
+  
+  return false;
+}
+
 // Function to search IP
 async function searchIP(ip) {
   const resultDiv = document.getElementById('ip-search-result');
@@ -467,22 +456,44 @@ async function searchIP(ip) {
     `;
     return;
   }
+
+  // After this line:
+if (!ip || !isValidIP(ip)) {
+  // ... existing code
+}
+
+// Add this check:
+if (isPrivateIP(ip)) {
+  resultDiv.style.display = 'block';
+  resultDiv.style.border = '1px solid #ffaa44';
+  resultDiv.innerHTML = `
+    <div style="color: #ffaa44; font-weight: bold; margin-bottom: 8px;">
+      PRIVATE IP ADDRESS
+    </div>
+    <div style="border-top: 1px solid #333; margin: 8px 0;"></div>
+    <div><span style="color: #f6ff14;">IP:</span> <span style="color: #fff;">${ip}</span></div>
+    <div><span style="color: #f6ff14;">Type:</span> <span style="color: #ffaa44;">Private / Local Network</span></div>
+    <div><span style="color: #f6ff14;">Info:</span> <span style="color: #fff;">This IP is not routable on the internet. Only accessible within local network.</span></div>
+  `;
+  showResult();
+  return;
+}
   
-  // Remove any existing temp marker
+  // Remove existing temp marker
   removeTemporaryMarker();
   
   // Show loading
   resultDiv.style.display = 'block';
   resultDiv.style.border = '1px solid #f6ff14';
   resultDiv.innerHTML = `
-    <span style="color: #f6ff14;">🔍 Searching AbuseIPDB...</span>
+    <span style="color: #f6ff14;">Searching AbuseIPDB...</span>
     <div style="margin-top: 5px;">
       <span style="color: #ffaa44;">IP: ${ip}</span>
     </div>
   `;
   
   try {
-    // Call your backend API
+    // Call backend API
     const response = await fetch(`http://localhost:8000/api/check-ip?ip=${ip}`);
     const data = await response.json();
     
@@ -490,13 +501,12 @@ async function searchIP(ip) {
       const report = data.data;
       const confidence = report.abuseConfidenceScore;
       const totalReports = report.totalReports;
-      // Get coordinates from backend (now with geocoding)
+
       const lat = report.latitude;
       const lon = report.longitude;
       const city = report.cityName || 'Unknown';
       const country = report.countryName || report.countryCode || 'Unknown';
       
-      // Determine color based on confidence
       let borderColor, statusColor, statusText;
       if (confidence >= 80) {
         borderColor = '#ff4444';
@@ -518,30 +528,29 @@ async function searchIP(ip) {
       
       resultDiv.style.border = `1px solid ${borderColor}`;
       
-      // Build result HTML
+      // result HTML
       let html = `
         <div style="color: ${statusColor}; font-weight: bold; margin-bottom: 8px;">
           ${statusText}
         </div>
-        <div style="border-top: 1px solid #333; margin: 8px 0;"></div>
-        <div><span style="color: #f6ff14;">🖥️ IP:</span> <span style="color: #fff;">${report.ipAddress}</span></div>
-        <div><span style="color: #f6ff14;">📊 Confidence:</span> <span style="color: #fff;">${confidence}%</span></div>
-        <div><span style="color: #f6ff14;">📝 Total Reports:</span> <span style="color: #fff;">${totalReports}</span></div>
-        <div><span style="color: #f6ff14;">🌍 Country:</span> <span style="color: #fff;">${country}</span></div>
-        <div><span style="color: #f6ff14;">🏢 ISP:</span> <span style="color: #fff;">${report.isp || 'Unknown'}</span></div>
+        <div style="border-top: 1px solid #333; margin: 8px 0;background: rgba(0, 0, 0, 0);"></div>
+        <div><span style="color: #f6ff14;">IP:</span> <span style="color: #fff;">${report.ipAddress}</span></div>
+        <div><span style="color: #f6ff14;">Confidence:</span> <span style="color: #fff;">${confidence}%</span></div>
+        <div><span style="color: #f6ff14;">Total Reports:</span> <span style="color: #fff;">${totalReports}</span></div>
+        <div><span style="color: #f6ff14;">Country:</span> <span style="color: #fff;">${country}</span></div>
+        <div><span style="color: #f6ff14;">ISP:</span> <span style="color: #fff;">${report.isp || 'Unknown'}</span></div>
       `;
       
       if (report.lastReportedAt) {
         const lastReported = new Date(report.lastReportedAt).toLocaleString();
-        html += `<div><span style="color: #f6ff14;">⏰ Last Reported:</span> <span style="color: #fff;">${lastReported}</span></div>`;
+        html += `<div><span style="color: #f6ff14;">Last Reported:</span> <span style="color: #fff;">${lastReported}</span></div>`;
       }
       
-      // Add marker on map if coordinates are available
+      // Add marker if coordinates available
       if (lat && lon) {
-        // Use your globe's coordinate conversion
         addTemporaryMarker(lat, lon, ip, city, country);
         html += `
-          <div style="border-top: 1px solid #00ffff; margin: 8px 0;"></div>
+          <div style="border-top: 1px solid #00ffff; margin: 8px 0;background: rgba(0, 0, 0, 0);"></div>
           <div style="color: #00ffff;"> Marker added on globe!</div>
           <div><span style="color: #f6ff14;"> Location:</span> <span style="color: #fff;">${city}, ${country}</span></div>
           <div><span style="color: #f6ff14;"> Coordinates:</span> <span style="color: #fff;">${lat.toFixed(2)}, ${lon.toFixed(2)}</span></div>
@@ -560,7 +569,7 @@ async function searchIP(ip) {
         `;
       } else {
         html += `
-          <div style="border-top: 1px solid #ffaa44; margin: 8px 0;"></div>
+          <div style="border-top: 1px solid #ffaa44; margin: 8px 0;background: rgba(0, 0, 0, 0);"></div>
           <div style="color: #ffaa44;">⚠️ No location data available for this IP</div>
         `;
       }
@@ -589,24 +598,21 @@ async function searchIP(ip) {
     
   } catch (error) {
     resultDiv.style.border = '1px solid #ff4444';
+    resultDiv.style.background = 'rgba(0, 0, 0, 0)';
     resultDiv.innerHTML = `
       <span style="color: #ff4444;">❌ Connection Error</span><br>
       <span style="color: #f6ff14; font-size: 10px;">${error.message}</span><br>
-      <span style="color: #ffaa44; font-size: 10px;">Make sure backend is running on port 8000</span>
     `;
   }
 }
 // Function to clear search
 function clearSearch() {
-  // Clear input field
   document.getElementById('ip-search-input').value = '';
-  
-  // Hide and clear result panel
+
   const resultDiv = document.getElementById('ip-search-result');
   resultDiv.style.display = 'none';
   resultDiv.innerHTML = '';
-  
-  // Remove temporary marker
+
   removeTemporaryMarker();
   
 }
@@ -623,34 +629,26 @@ document.getElementById('ip-search-input').addEventListener('keypress', (e) => {
     searchIP(ip);
   }
 });
-// Clear button event listener
+
 document.getElementById('ip-clear-btn').addEventListener('click', () => {
   clearSearch();
 });
 
-// Optional: Add focus shortcut (Ctrl+F)
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'f') {
-    e.preventDefault();
-    document.getElementById('ip-search-input').focus();
-  }
-});
-
-// --- Raycaster for Hover ---
+//Raycaster
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 window.addEventListener('mousemove', (event) => {
-  // 1. Update mouse coordinates
+  // Update mouse coordinates
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  // 2. Move Tooltip UI
+  // Move Tooltip UI
   tooltip.style.left = `${event.clientX + 15}px`;
   tooltip.style.top = `${event.clientY + 15}px`;
 });
 
-// --- Animation loop ---
+//Animation
 function animate() {
   requestAnimationFrame(animate);
   
@@ -669,7 +667,7 @@ function animate() {
         data.light.intensity = 0.5 + Math.sin(pulseTime) * 0.3;
       }
       
-      // Pulse the sphere (pin head)
+      // Pulse the sphere
       const sphere = marker.children.find(child => child.geometry && child.geometry.type === 'SphereGeometry');
       if (sphere) {
         const sphereScale = 1 + Math.sin(pulseTime) * 0.2;
@@ -686,7 +684,6 @@ function animate() {
       allMarkers.push(tempMarker);
   }
   
-  // Check markers
   const markerIntersects = raycaster.intersectObjects(allMarkers, true);
   
   if (markerIntersects.length > 0) {
@@ -700,22 +697,22 @@ function animate() {
       const data = markerGroup.userData;
       tooltip.innerHTML = `
         <strong>⚠️ LIVE THREAT</strong><br>
-        📍 ${data.city}<br>
-        🖥️ IP: ${data.ip}<br>
-        🎯 Type: ${data.attackType}<br>
-        📊 Confidence: ${data.confidence}%<br>
-        💢 Active Now
+        ${data.city}<br>
+        IP: ${data.ip}<br>
+        Type: ${data.attackType}<br>
+        Confidence: ${data.confidence}%<br>
+        Active Now
       `;
       tooltip.style.display = 'block';
     } 
     else if (markerGroup && markerGroup.userData?.type === "temp") {
       const data = markerGroup.userData;
       tooltip.innerHTML = `
-        <strong>🔍 SEARCHED IP</strong><br>
-        📍 ${data.city}, ${data.country}<br>
-        🖥️ IP: ${data.ip}<br>
-        🎯 Type: Temporary Marker<br>
-        💡 Click Clear to remove
+        <strong>SEARCHED IP</strong><br>
+        ${data.city}, ${data.country}<br>
+        IP: ${data.ip}<br>
+        Type: Temporary Marker<br>
+        Click Clear to remove
       `;
       tooltip.style.display = 'block';
     }

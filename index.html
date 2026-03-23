@@ -12,26 +12,6 @@
         background: radial-gradient(#050526 0%, black 90%) no-repeat;
       }
       
-      /* Stars Animation */
-      .stars {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 2px;
-        height: 2px;
-        z-index: 1;
-        pointer-events: none;
-      }
-      
-      .stars:before, .stars:after {
-        content: "";
-        position: absolute;
-        width: inherit;
-        height: inherit;
-        box-shadow: inherit;
-      }
-      
-      /* Cyberpunk Title Container */
       .title-container {
         position: absolute;
         top: 30px;
@@ -57,7 +37,6 @@
         margin: 0 10px;
         }
 
-      /* Status Bar */
       .status-bar {
         position: absolute;
         bottom: 20px;
@@ -67,17 +46,15 @@
       }
       
       .status-card {
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0);
         color: #f6ff14;
         padding: 8px 16px;
         border-radius: 4px;
         font-family: 'Orbitron', monospace;
         font-size: 12px;
         border-left: 3px solid #f6ff14;
-        backdrop-filter: blur(5px);
       }
       
-      /* Attack Counter */
       .attack-counter {
         position: absolute;
         bottom: 20px;
@@ -87,7 +64,7 @@
       }
       
       .counter-card {
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0);
         color: #ff4444;
         padding: 8px 16px;
         border-radius: 4px;
@@ -95,26 +72,23 @@
         font-size: 14px;
         font-weight: bold;
         border-right: 3px solid #ff4444;
-        backdrop-filter: blur(5px);
       }
       
-      /* Legend */
       .legend {
         position: absolute;
-        bottom: 22px;
+        bottom: 21px;
         left: 40%;
         transform: translateX(-50%);
         color: yellow;
         z-index: 1000;
         pointer-events: none;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0);
         padding: 8px 16px;
         border-radius: 4px;
         display: flex;
         gap: 10px;
         font-family: 'Orbitron', monospace;
-        font-size: 10px;
-        backdrop-filter: blur(5px);
+        font-size: 9px;
       }
       
       .legend-item {
@@ -133,26 +107,75 @@
       .legend-color.orange { background: #ff6600; }
       .legend-color.yellow { background: #ffaa00; }
       .legend-color.gray { background: yellow; }
+
     </style>
   </head>
   <body>
-    <!-- Cyberpunk Title -->
+
     <div class="title-container">
       <div>
-        <span class="cyberspace" data-text="THREAT">THREAT</span>
-        <span class="cyberspace" data-text="INTELLIGENCE">INTELLIGENCE</span>
-        <span class="cyberspace" data-text="GLOBE">GLOBE</span>
+        <span class="cyberspace" data-text="IP">IP</span>
+        <span class="cyberspace" data-text="-">-</span>
+        <span class="cyberspace" data-text="HUB">HUB</span>
       </div>
     </div>
-    
-    <!-- Status Bar -->
+
+    <!-- Marker Legend -->
+<div style="position: absolute; top: 150px; left: 20px; z-index: 1000; background: rgba(0,0,0,0); backdrop-filter: blur(1px); border: 1px solid #f6ff14; border-radius: 8px; padding: 12px; font-family:'Orbitron', monospace; font-size: 11px; min-width: 180px;">
+  <div style="color: #f6ff14; font-weight: bold; margin-bottom: 10px; text-align: center;"> MARKERS : </div>
+  
+  <!-- Red Marker -->
+  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+    <div style="width: 20px; height: 11px; margin-right: 8px; position: relative;">
+      <div style="position: absolute; width: 8px; height: 8px; background: #ff0000; border-radius: 50%; top: 2px; left: 6px;"></div>
+      <div style="position: absolute; width: 12px; height: 12px; border: 2px solid #ff0000; border-radius: 50%; top: -2px; left: 2.8px; animation: pulse 1s infinite;"></div>
+    </div>
+    <span style="color: #ff6666;">High Threat (90%+ confidence)</span>
+  </div>
+  
+  <!-- Orange Marker -->
+  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+    <div style="width: 20px; height: 11px; margin-right: 8px; position: relative;">
+      <div style="position: absolute; width: 8px; height: 8px; background: #ff6600; border-radius: 50%; top: 2px; left: 6px;"></div>
+      <div style="position: absolute; width: 12px; height: 12px; border: 2px solid #ff6600; border-radius: 50%; top: -2px; left: 2.8px; animation: pulse 1s infinite;"></div>
+    </div>
+    <span style="color: #ffaa66;">Medium Threat (70-89% confidence)</span>
+  </div>
+  
+  <!-- Yellow Marker -->
+  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+    <div style="width: 20px; height: 11px; margin-right: 8px; position: relative;">
+      <div style="position: absolute; width: 8px; height: 8px; background: #ffaa00; border-radius: 50%; top: 2px; left: 6px;"></div>
+      <div style="position: absolute; width: 12px; height: 12px; border: 2px solid #ffaa00; border-radius: 50%; top: -2px; left: 2.8px; animation: pulse 1s infinite;"></div>
+    </div>
+    <span style="color: #ffdd88;">Low Threat (Below 70% confidence)</span>
+  </div>
+  
+  <!-- Cyan Marker (Searched IP) -->
+  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+    <div style="width: 20px; height: 11px; margin-right: 8px; position: relative;">
+      <div style="position: absolute; width: 8px; height: 8px; background: #00ffff; border-radius: 50%; top: 2px; left: 6px;"></div>
+      <div style="position: absolute; width: 12px; height: 12px; border: 2px solid #00ffff; border-radius: 50%; top: -2px; left: 2.8px; animation: pulse 1s infinite;"></div>
+    </div>
+    <span style="color: #88ffff;">Searched IP (Temporary Marker)</span>
+  </div>
+  
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+</style>
+
     <div class="status-bar">
       <div class="status-card">
-         MONITORING NETWORK TRAFFIC
+         MONITORING NETWORK TRAFFIC :
       </div>
     </div>
     
-<!-- IP Search Bar -->
+
 <div class="ip-search-container" style="
   position: absolute;
   bottom: 10px;
@@ -228,8 +251,8 @@
   <!-- Result Panel -->
   <div id="ip-search-result" style="
     margin-top: 10px;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(1px);
     border-radius: 8px;
     padding: 12px;
     padding-left: 12px;
