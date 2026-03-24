@@ -59,18 +59,20 @@ async def root():
         ]
     }
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Serve static files
-app.mount("/geojson", StaticFiles(directory="geojson"), name="geojson")
-app.mount("/src", StaticFiles(directory="src"), name="src")
+app.mount("/geojson", StaticFiles(directory=os.path.join(BASE_DIR, "geojson")), name="geojson")
+app.mount("/src", StaticFiles(directory=os.path.join(BASE_DIR, "src")), name="src")
 
 # Serve HTML pages
 @app.get("/")
 async def serve_index():
-    return FileResponse("index.html")
+    return FileResponse(os.path.join(BASE_DIR, "index.html"))
 
 @app.get("/about")
 async def serve_about():
-    return FileResponse("about.html")
+    return FileResponse(os.path.join(BASE_DIR, "about.html"))
 
 @app.get("/api/live-attacks")
 async def get_live_attacks(limit: int = 20):
