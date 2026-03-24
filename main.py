@@ -49,6 +49,19 @@ def get_attack_category(categories):
             return category_map[cat_id]
     return "Malicious Activity"
 
+# Serve static folders (these exist in root)
+app.mount("/geojson", StaticFiles(directory="geojson"), name="geojson")
+app.mount("/src", StaticFiles(directory="src"), name="src")
+
+# Serve HTML files from root
+@app.get("/")
+async def serve_index():
+    return FileResponse("index.html")
+
+@app.get("/about")
+async def serve_about():
+    return FileResponse("about.html")
+
 @app.get("/api")
 async def root():
     return {
@@ -58,21 +71,6 @@ async def root():
             "/api/check-ip",
         ]
     }
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Serve static files
-app.mount("/geojson", StaticFiles(directory=os.path.join(BASE_DIR, "geojson")), name="geojson")
-app.mount("/src", StaticFiles(directory=os.path.join(BASE_DIR, "src")), name="src")
-
-# Serve HTML pages
-@app.get("/")
-async def serve_index():
-    return FileResponse(os.path.join(BASE_DIR, "index.html"))
-
-@app.get("/about")
-async def serve_about():
-    return FileResponse(os.path.join(BASE_DIR, "about.html"))
 
 @app.get("/api/live-attacks")
 async def get_live_attacks(limit: int = 20):
