@@ -59,18 +59,18 @@ async def root():
         ]
     }
 
-# Serve frontend at /
+# Serve static files
+app.mount("/geojson", StaticFiles(directory="geojson"), name="geojson")
+app.mount("/src", StaticFiles(directory="src"), name="src")
+
+# Serve HTML pages
 @app.get("/")
-async def serve_frontend():
-    return FileResponse("frontend/index.html")
+async def serve_index():
+    return FileResponse("index.html")
 
 @app.get("/about")
 async def serve_about():
-    return FileResponse("frontend/about.html")
-
-# Mount static folders
-app.mount("/geojson", StaticFiles(directory="frontend/geojson"), name="geojson")
-app.mount("/src", StaticFiles(directory="frontend/src"), name="src")
+    return FileResponse("about.html")
 
 @app.get("/api/live-attacks")
 async def get_live_attacks(limit: int = 20):
