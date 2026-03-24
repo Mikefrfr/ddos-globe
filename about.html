@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Threat Intelligence Globe</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: radial-gradient(#050526 0%, black 90%) no-repeat;
+      }
+      
+      .title-container {
+        position: absolute;
+        top: 30px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 1000;
+        pointer-events: none;
+      }
+      
+      .cyberspace {
+        font-family: 'Orbitron', monospace;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: black;
+        -webkit-text-stroke-width: 2px;
+        -webkit-text-stroke-color: #f6ff14;
+        text-shadow: 
+          0 0 10px rgba(246, 255, 20, 0.8),
+          0 0 20px rgba(246, 255, 20, 0.5);
+        letter-spacing: 6px;
+        display: inline-block;
+        margin: 0 10px;
+        }
+
+      .small-button{
+        background: rgba(0,0,0,0);
+        color: #f6ff14;
+        padding: 8px 20px;
+        margin: 0 10px;
+        text-decoration: none;
+        font-family:'Orbitron', monospace;
+        font-size: 13px;
+        display: inline-block;
+        transition: all 0.2s;
+      }
+
+      .small-button:hover {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      .small-title{
+        font-family: 'Orbitron', monospace;
+        font-size: 25px;
+        font-weight: 900;
+        color: black;
+        -webkit-text-stroke-width: 2px;
+        -webkit-text-stroke-color: #ff3a3a;
+        letter-spacing: 6px;
+        display: inline-block;
+        margin: 0 10px;
+      }
+      .para{
+        color: #f6ff14;
+        text-align: justify;
+        font-family: 'Orbitron', monospace;
+        font-size: 17px;
+        font-weight: 10px;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div class="title-container">
+      <div>
+        <span class="cyberspace" data-text="IP">IP</span>
+        <span class="cyberspace" data-text="-">-</span>
+        <span class="cyberspace" data-text="HUB">HUB</span>
+      </div>
+    </div>
+    <!-- Navigation Buttons -->
+<div style="position: absolute; top: 80px; left: 0; right: 0; text-align: center; z-index: 1000;">
+  <a href="index.html" class="small-button">
+    HOME
+  </a>
+  <span style=" color: #f6ff14; font-size: 14px;">|</span>
+  <a href="about.html" class="small-button">
+    ABOUT
+  </a>
+</div>
+
+<div style="position: absolute; top: 150px; left: 70px; right: 70px;">
+  <span class="small-title"> What is IP-HUB? </span><br>
+  <p class="para"> IP-HUB is a real-time cybersecurity threat intelligence dashboard that visualizes global cyber threats on an interactive 3D globe. It allows users to see live blacklisted IPs pulsing on the map, search any IP address to check its threat level and confidence score, and pinpoint the exact city location of the given IPs. It also shows a heat map of the countries and thier respective network traffic (mock data) .</p><br>
+  <span class="small-title"> Frontend </span><br>
+  <p class="para"> IP-HUB Frontend is built using Three.js and the Three-Globe library to create an interactive 3D visualization of global cyber threats. Users can hover over any marker to view information </p>
+  <p class="para"> The globe is constructed by loading a custom.geo.json file containing GeoJSON-formatted geographic data that defines the boundaries of countries and territories around the world. </p><br>
+  <span class="small-title"> Backend </span><br>
+  <p class="para"> IP-HUB Backend is built using FastAPI, a high-performance Python web framework.  It provides endpoints that fetch real-time data from AbuseIPDB, including IP reputation, confidence scores, total reports, and attack categories. </p>
+  <p class="para"> For city-level geolocation, the backend integrates with ip-api.com to retrieve precise latitude and longitude coordinates for any IP address.  The backend also includes private IP detection, input validation, error handling, and rate limit management. </p>
+</div>
+    
+<script type="importmap">
+{
+    "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js",
+    "jsm/": "https://cdn.jsdelivr.net/npm/three@0.174.0/examples/jsm/",
+    "@turf/turf": "https://esm.sh/@turf/turf@6.5.0"
+    }
+}
+</script>
+    <script type="module" src="about.js"></script>
+</body>
+</html>

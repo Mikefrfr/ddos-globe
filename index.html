@@ -108,6 +108,23 @@
       .legend-color.yellow { background: #ffaa00; }
       .legend-color.gray { background: yellow; }
 
+      .small-button{
+        background: rgba(0,0,0,0);
+        color: #f6ff14;
+        padding: 8px 20px;
+        margin: 0 10px;
+        text-decoration: none;
+        font-family:'Orbitron', monospace;
+        font-size: 13px;
+        display: inline-block;
+        transition: all 0.2s;
+      }
+
+      .small-button:hover {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
     </style>
   </head>
   <body>
@@ -119,10 +136,20 @@
         <span class="cyberspace" data-text="HUB">HUB</span>
       </div>
     </div>
+    <!-- Navigation Buttons -->
+<div style="position: absolute; top: 80px; left: 0; right: 0; text-align: center; z-index: 1000;">
+  <a href="index.html" class="small-button">
+    HOME
+  </a>
+  <span style=" color: #f6ff14; font-size: 14px;">|</span>
+  <a href="about.html" class="small-button">
+    ABOUT
+  </a>
+</div>
 
     <!-- Marker Legend -->
 <div style="position: absolute; top: 150px; left: 20px; z-index: 1000; background: rgba(0,0,0,0); backdrop-filter: blur(1px); border: 1px solid #f6ff14; border-radius: 8px; padding: 12px; font-family:'Orbitron', monospace; font-size: 11px; min-width: 180px;">
-  <div style="color: #f6ff14; font-weight: bold; margin-bottom: 10px; text-align: center;"> MARKERS : </div>
+  <div style="color: #f6ff14; font-weight: bold; margin-bottom: 10px; text-align: center;"> BLACKLISTED IP : </div>
   
   <!-- Red Marker -->
   <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -171,7 +198,7 @@
 
     <div class="status-bar">
       <div class="status-card">
-         MONITORING NETWORK TRAFFIC :
+         NETWORK TRAFFIC HEATMAP :
       </div>
     </div>
     

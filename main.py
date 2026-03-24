@@ -53,7 +53,6 @@ async def root():
         "endpoints": [
             "/api/live-attacks",
             "/api/check-ip",
-            "/api/globe-data"
         ]
     }
 
