@@ -145,7 +145,8 @@ async def check_ip(ip: str):
                 "ipAddress": ip,
                 "maxAgeInDays": 90,
                 "verbose": True
-            }
+            },
+            timeout=5
         )
         
         if abuse_response.status_code != 200:
@@ -160,14 +161,11 @@ async def check_ip(ip: str):
         city = None
         country = report_data.get("countryName")
         
-        # Try ip-api.com first
         try:
             geo_response = requests.get(
                 f"http://ip-api.com/json/{ip}",
-                params={
-                    "fields": "status,country,city,lat,lon,isp"
-                },
-                timeout=3
+                params={"fields": "status,country,city,lat,lon,isp"},
+                timeout=5
             )
             
             if geo_response.status_code == 200:
@@ -181,12 +179,11 @@ async def check_ip(ip: str):
         except Exception as e:
             print(f"ip-api.com error: {e}")
         
-        # If ip-api.com failed, try ipinfo.io as fallback
         if not lat or not lon:
             try:
                 geo_response = requests.get(
                     f"https://ipinfo.io/{ip}/json",
-                    timeout=3
+                    timeout=5
                 )
                 
                 if geo_response.status_code == 200:
