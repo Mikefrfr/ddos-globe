@@ -5,6 +5,10 @@ import getStarfield from "./src/getStarfield.js";
 
 const tooltip = document.getElementById('globe-tooltip');
 
+const BACKEND_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8000' 
+  : 'https://ip-hub-backend.onrender.com';  // Replace with your actual Render URL
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -200,7 +204,7 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
 
 async function loadAttackMarkers() {
   try {
-    const response = await fetch('http://localhost:8000/api/live-attacks?limit=20');
+    const response = await fetch(`${BACKEND_URL}/api/live-attacks?limit=20`);
     const data = await response.json();
     
     if (data.success && data.attacks.length > 0) {
@@ -494,7 +498,7 @@ if (isPrivateIP(ip)) {
   
   try {
     // Call backend API
-    const response = await fetch(`http://localhost:8000/api/check-ip?ip=${ip}`);
+    const response = await fetch(`${BACKEND_URL}/api/check-ip?ip=${ip}`);
     const data = await response.json();
     
     if (data.success && data.data) {
