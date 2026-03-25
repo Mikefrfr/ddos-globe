@@ -8,9 +8,14 @@ load_dotenv()
 
 app = FastAPI()
 
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://mikefrfr.github.io/ddos-globe/"],  # Your GitHub Pages URL
+    allow_origins=[
+        "https://mikefrfr.github.io",  # Your GitHub Pages URL
+        "http://localhost:5500",           # Local development
+        "http://127.0.0.1:5500"            # Local alternative
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
