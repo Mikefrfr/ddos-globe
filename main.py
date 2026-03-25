@@ -3,9 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import requests
 import os
 from dotenv import load_dotenv
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
 
 load_dotenv()
 
@@ -49,23 +46,10 @@ def get_attack_category(categories):
             return category_map[cat_id]
     return "Malicious Activity"
 
-# Serve static folders (these exist in root)
-app.mount("/geojson", StaticFiles(directory="geojson"), name="geojson")
-app.mount("/src", StaticFiles(directory="src"), name="src")
-
-# Serve HTML files from root
 @app.get("/")
-async def serve_index():
-    return FileResponse("index.html")
-
-@app.get("/about")
-async def serve_about():
-    return FileResponse("about.html")
-
-@app.get("/api")
 async def root():
     return {
-        "message": "IP-HUB API",
+        "message": "Threat Intelligence Globe API",
         "endpoints": [
             "/api/live-attacks",
             "/api/check-ip",

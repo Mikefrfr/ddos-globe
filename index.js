@@ -200,7 +200,7 @@ function createPulsingMarker(lat, lon, confidence, ip, attackType, city) {
 
 async function loadAttackMarkers() {
   try {
-    const response = await fetch('/api/live-attacks?limit=20');
+    const response = await fetch('http://localhost:8000/api/live-attacks?limit=20');
     const data = await response.json();
     
     if (data.success && data.attacks.length > 0) {
@@ -494,7 +494,7 @@ if (isPrivateIP(ip)) {
   
   try {
     // Call backend API
-    const response = await fetch('/api/check-ip?ip=' + ip);
+    const response = await fetch(`http://localhost:8000/api/check-ip?ip=${ip}`);
     const data = await response.json();
     
     if (data.success && data.data) {
