@@ -12,9 +12,9 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://mikefrfr.github.io",  # Your GitHub Pages URL
-        "http://localhost:5500",           # Local development
-        "http://127.0.0.1:5500"            # Local alternative
+        "https://mikefrfr.github.io",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
     ],
     allow_credentials=True,
     allow_methods=["*"],
