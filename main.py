@@ -8,10 +8,14 @@ load_dotenv()
 
 app = FastAPI()
 
-# Enable CORS
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
+    allow_origins=[
+        "https://mikefrfr.github.io",  # Your GitHub Pages URL
+        "http://localhost:5500",           # Local development
+        "http://127.0.0.1:5500"            # Local alternative
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -119,7 +123,6 @@ async def get_live_attacks(limit: int = 20):
     except Exception as e:
         return {"success": False, "error": str(e)}
     
-# To check a specific ip using abuseIPDB and ip-api data
 @app.get("/api/check-ip")
 async def check_ip(ip: str):
     try:
@@ -151,12 +154,13 @@ async def check_ip(ip: str):
         abuse_data = abuse_response.json()
         report_data = abuse_data.get("data", {})
         
-        # Get city-level location from ip-api
+        # Get city-level location
         lat = None
         lon = None
         city = None
         country = report_data.get("countryName")
         
+        # Try ip-api.com first
         try:
             geo_response = requests.get(
                 f"http://ip-api.com/json/{ip}",
@@ -173,8 +177,28 @@ async def check_ip(ip: str):
                     lon = geo_data.get("lon")
                     city = geo_data.get("city")
                     country = geo_data.get("country") or country
+                    print(f"✅ ip-api.com: {city} ({lat}, {lon})")
         except Exception as e:
             print(f"ip-api.com error: {e}")
+        
+        # If ip-api.com failed, try ipinfo.io as fallback
+        if not lat or not lon:
+            try:
+                geo_response = requests.get(
+                    f"https://ipinfo.io/{ip}/json",
+                    timeout=3
+                )
+                
+                if geo_response.status_code == 200:
+                    geo_data = geo_response.json()
+                    loc = geo_data.get("loc", "")
+                    if loc and "," in loc:
+                        lat, lon = map(float, loc.split(","))
+                        city = geo_data.get("city", "")
+                        country = geo_data.get("country", country)
+                        print(f"✅ ipinfo.io: {city} ({lat}, {lon})")
+            except Exception as e:
+                print(f"ipinfo.io error: {e}")
         
         return {
             "success": True,
