@@ -183,7 +183,7 @@ async def check_ip(ip: str):
             try:
                 geo_response = requests.get(
                     f"https://ipinfo.io/{ip}/json",
-                    timeout=5
+                    timeout=20
                 )
                 
                 if geo_response.status_code == 200:
